@@ -29,6 +29,7 @@ import chatRoutes from './routes/chat.js'
 import adminRoutes from './routes/admin.js'
 import teamRoutes from './routes/teams.js'
 import worldcupRoutes from './routes/worldcup.js'
+import achievementRoutes from './routes/achievements.js'
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js'
@@ -148,6 +149,7 @@ app.use('/api/chat', chatRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/teams', teamRoutes)
 app.use('/api/worldcup', worldcupRoutes)
+app.use('/api/achievements', achievementRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

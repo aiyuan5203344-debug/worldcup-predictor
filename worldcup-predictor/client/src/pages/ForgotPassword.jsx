@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1) // 1: email, 2: verify code, 3: new password
@@ -22,15 +22,9 @@ const ForgotPassword = () => {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() })
-      })
+      const data = await api.post('/auth/forgot-password', { email: email.trim() }, { requireAuth: false })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.message) {
         toast.success(data.message)
         setStep(2)
         startCountdown()
@@ -52,15 +46,9 @@ const ForgotPassword = () => {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/auth/verify-reset-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), code: code.trim() })
-      })
+      const data = await api.post('/auth/verify-reset-code', { email: email.trim(), code: code.trim() }, { requireAuth: false })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.resetToken) {
         toast.success('验证成功')
         setResetToken(data.resetToken)
         setStep(3)
@@ -92,15 +80,9 @@ const ForgotPassword = () => {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/auth/reset-password-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resetToken, newPassword })
-      })
+      const data = await api.post('/auth/reset-password-token', { resetToken, newPassword }, { requireAuth: false })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.message) {
         toast.success('密码重置成功，请重新登录')
         navigate('/login')
       } else {

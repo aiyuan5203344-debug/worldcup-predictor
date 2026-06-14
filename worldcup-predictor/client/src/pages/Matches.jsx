@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getTeamName, getTeamFlag } from '../utils/teams'
 import CalendarView from '../components/Common/CalendarView'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Matches = () => {
   const [matches, setMatches] = useState([])
@@ -26,13 +26,9 @@ const Matches = () => {
       if (filter.stage) params.append('stage', filter.stage)
       params.append('limit', '200')
 
-      const token = localStorage.getItem('accessToken')
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const data = await api.get(`/matches?${params}`, { requireAuth: false })
 
-      const response = await fetch(`${API_BASE}/matches?${params}`, { headers })
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.matches) {
         setMatches(data.matches || [])
         setLastRefresh(new Date())
       }
@@ -66,17 +62,12 @@ const Matches = () => {
   const handleSync = async () => {
     setSyncing(true)
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/worldcup/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
-      })
-      const data = await response.json()
-      if (response.ok) {
-        toast.success(`同步完成: ${data.synced}新增, ${data.updated}更新`)
+      const result = await api.post('/worldcup/sync')
+      if (result.synced !== undefined) {
+        toast.success(`同步完成: ${result.synced}新增, ${result.updated}更新`)
         fetchMatches()
       } else {
-        toast.error(data.error || '同步失败')
+        toast.error(result.error || '同步失败')
       }
     } catch (error) {
       toast.error('同步失败')
@@ -354,6 +345,18 @@ const Matches = () => {
           >
             📋
           </button>
+          <button
+            onClick={() => setViewMode('calendar')}
+            className="p-2 rounded-lg transition-all"
+            style={{
+              background: viewMode === 'calendar' ? '#d4af37' : '#1a2332',
+              color: viewMode === 'calendar' ? '#0a0e17' : '#94a3b8',
+              border: `1px solid ${viewMode === 'calendar' ? '#d4af37' : '#1e293b'}`
+            }}
+            title="日历视图"
+          >
+            🗓️
+          </button>
         </div>
       </div>
 
@@ -436,6 +439,13 @@ const Matches = () => {
           <h3 className="text-xl font-bold text-text-primary mb-2">暂无比赛数据</h3>
           <p className="text-text-secondary">比赛开始后将显示实时比分</p>
         </div>
+      ) : viewMode === 'calendar' ? (
+        /* Calendar View */
+        <CalendarView
+          matches={filteredMatches}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
       ) : viewMode === 'grouped' ? (
         /* Grouped by Date View */
         <div className="space-y-6">

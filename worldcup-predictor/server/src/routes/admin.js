@@ -1,4 +1,5 @@
 import express from 'express'
+import bcrypt from 'bcryptjs'
 import { dbAll, dbGet, dbRun } from '../models/database.js'
 import { authenticateToken } from '../middleware/auth.js'
 
@@ -80,7 +81,6 @@ router.post('/users/:id/reset-password', authenticateToken, requireAdmin, (req, 
       return res.status(404).json({ error: '用户不存在' })
     }
 
-    const bcrypt = require('bcryptjs')
     const passwordHash = bcrypt.hashSync(newPassword, 10)
     dbRun('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId])
 

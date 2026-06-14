@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getTeamName, getTeamFlag } from '../utils/teams'
-import { API_BASE } from '../config'
+import api from '../services/api'
 import ChatRoom from '../components/Chat/ChatRoom'
 import OddsDisplay from '../components/Match/OddsDisplay'
 
@@ -35,17 +35,13 @@ const MatchDetail = () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('accessToken')
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
 
-      const [matchRes, predRes] = await Promise.all([
-        fetch(`${API_BASE}/matches/${id}`, { headers }),
-        token ? fetch(`${API_BASE}/predictions?match_id=${id}`, { headers }) : Promise.resolve({ ok: false })
+      const [matchData, predData] = await Promise.all([
+        api.get(`/matches/${id}`, { requireAuth: false }),
+        token ? api.get(`/predictions?match_id=${id}`).catch(() => ({ predictions: [] })) : Promise.resolve({ predictions: [] })
       ])
 
-      const matchData = await matchRes.json()
-      const predData = predRes.ok ? await predRes.json() : { predictions: [] }
-
-      if (matchRes.ok) {
+      if (matchData.match) {
         setMatch(matchData.match)
         setPredictions(predData.predictions || [])
         
@@ -64,19 +60,17 @@ const MatchDetail = () => {
 
   const fetchTeamDetails = async (homeCode, awayCode) => {
     try {
-      const [homeRes, awayRes] = await Promise.all([
-        fetch(`${API_BASE}/teams/${homeCode}`),
-        fetch(`${API_BASE}/teams/${awayCode}`)
+      const [homeData, awayData] = await Promise.all([
+        api.get(`/teams/${homeCode}`, { requireAuth: false }),
+        api.get(`/teams/${awayCode}`, { requireAuth: false })
       ])
       
-      if (homeRes.ok) {
-        const homeData = await homeRes.json()
+      if (homeData.team) {
         setHomeTeam(homeData.team)
         setHomePlayers(homeData.players || [])
       }
       
-      if (awayRes.ok) {
-        const awayData = await awayRes.json()
+      if (awayData.team) {
         setAwayTeam(awayData.team)
         setAwayPlayers(awayData.players || [])
       }
@@ -98,23 +92,13 @@ const MatchDetail = () => {
 
     setSubmitting(true)
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/predictions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          match_id: parseInt(id),
-          home_score: parseInt(homeScore),
-          away_score: parseInt(awayScore)
-        })
+      const result = await api.post('/predictions', {
+        match_id: parseInt(id),
+        home_score: parseInt(homeScore),
+        away_score: parseInt(awayScore)
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (result.prediction) {
         toast.success('预测成功！')
         fetchMatch()
       } else {

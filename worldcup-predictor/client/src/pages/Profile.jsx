@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Profile = () => {
   const [user, setUser] = useState(null)
@@ -25,13 +25,8 @@ const Profile = () => {
 
   const fetchPredictions = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/predictions`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      const data = await response.json()
-
-      if (response.ok) {
+      const data = await api.get('/predictions')
+      if (data.predictions) {
         setPredictions(data.predictions || [])
       }
     } catch (error) {
@@ -48,17 +43,9 @@ const Profile = () => {
     }
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ nickname: formData.nickname })
-      })
+      const result = await api.put('/auth/profile', { nickname: formData.nickname })
 
-      if (response.ok) {
+      if (result.user) {
         const updatedUser = { ...user, nickname: formData.nickname }
         setUser(updatedUser)
         localStorage.setItem('user', JSON.stringify(updatedUser))

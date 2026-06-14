@@ -29,8 +29,9 @@ const Navbar = () => {
     { path: '/matches', label: '赛事', icon: '⚽', ariaLabel: '查看赛事中心' },
     { path: '/teams', label: '球队', icon: '🏆', ariaLabel: '查看球队资料库' },
     { path: '/predict', label: '预测', icon: '🎯', ariaLabel: '提交预测' },
-    { path: '/leaderboard', label: '排行榜', icon: '🏆', ariaLabel: '查看排行榜' },
-    { path: '/charts', label: '数据', icon: '📊', ariaLabel: '查看数据统计' },
+    { path: '/leaderboard', label: '排行榜', icon: '📊', ariaLabel: '查看排行榜' },
+    { path: '/achievements', label: '成就', icon: '🏅', ariaLabel: '查看成就系统' },
+    { path: '/charts', label: '数据', icon: '📈', ariaLabel: '查看数据统计' },
   ]
 
   const isActive = (path) => location.pathname === path
@@ -187,7 +188,7 @@ const Navbar = () => {
               {/* Admin badge */}
               {isAdmin && (
                 <span 
-                  aria-label管理员账户
+                  aria-label="管理员账户"
                   style={{
                     padding: '4px 10px',
                     background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',

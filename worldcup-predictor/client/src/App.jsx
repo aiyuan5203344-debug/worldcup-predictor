@@ -23,6 +23,7 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const Charts = lazy(() => import('./pages/Charts'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Teams = lazy(() => import('./pages/Teams'))
+const Achievements = lazy(() => import('./pages/Achievements'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 // Loading component for Suspense
@@ -93,6 +94,9 @@ function App() {
                       } />
                       <Route path="/teams" element={
                         <ProtectedRoute><Teams /></ProtectedRoute>
+                      } />
+                      <Route path="/achievements" element={
+                        <ProtectedRoute><Achievements /></ProtectedRoute>
                       } />
                       <Route path="/admin" element={
                         <ProtectedRoute><Admin /></ProtectedRoute>

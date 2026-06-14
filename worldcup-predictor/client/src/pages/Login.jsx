@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import Captcha from '../components/Common/Captcha'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '', rememberMe: false })
@@ -34,18 +34,13 @@ const Login = () => {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: formData.username.trim(),
-          password: formData.password,
-          rememberMe: formData.rememberMe
-        })
+      const data = await api.login({
+        username: formData.username.trim(),
+        password: formData.password,
+        rememberMe: formData.rememberMe
       })
-      const data = await response.json()
 
-      if (response.ok) {
+      if (data.accessToken) {
         localStorage.setItem('accessToken', data.accessToken)
         localStorage.setItem('refreshToken', data.refreshToken)
         localStorage.setItem('user', JSON.stringify(data.user))

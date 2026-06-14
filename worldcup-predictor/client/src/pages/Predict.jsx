@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Predict = () => {
   const [matches, setMatches] = useState([])
@@ -22,15 +22,11 @@ const Predict = () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('accessToken')
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
 
-      const [matchesRes, predictionsRes] = await Promise.all([
-        fetch(`${API_BASE}/matches?status=upcoming&limit=50`, { headers }),
-        token ? fetch(`${API_BASE}/predictions`, { headers }) : Promise.resolve({ ok: false })
+      const [matchesData, predictionsData] = await Promise.all([
+        api.get('/matches?status=upcoming&limit=50', { requireAuth: false }),
+        token ? api.get('/predictions').catch(() => ({ predictions: [] })) : Promise.resolve({ predictions: [] })
       ])
-
-      const matchesData = await matchesRes.json()
-      const predictionsData = predictionsRes.ok ? await predictionsRes.json() : { predictions: [] }
 
       setMatches(matchesData.matches || [])
       setPredictions(predictionsData.predictions || [])
@@ -54,27 +50,17 @@ const Predict = () => {
 
     setSubmitting(matchId)
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/predictions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          match_id: matchId,
-          home_score: parseInt(homeScore),
-          away_score: parseInt(awayScore)
-        })
+      const result = await api.post('/predictions', {
+        match_id: matchId,
+        home_score: parseInt(homeScore),
+        away_score: parseInt(awayScore)
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (result.prediction) {
         toast.success('预测成功！')
         fetchData()
       } else {
-        toast.error(data.error || '预测失败')
+        toast.error(result.error || '预测失败')
       }
     } catch (error) {
       toast.error('网络错误')

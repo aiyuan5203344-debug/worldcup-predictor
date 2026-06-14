@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Charts = () => {
   const [stats, setStats] = useState(null)
@@ -14,16 +14,10 @@ const Charts = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
-
-      const [matchesRes, leaderboardRes] = await Promise.all([
-        fetch(`${API_BASE}/matches?limit=200`, { headers }),
-        fetch(`${API_BASE}/leaderboard`, { headers })
+      const [matchesData, leaderboardData] = await Promise.all([
+        api.get('/matches?limit=200', { requireAuth: false }),
+        api.get('/leaderboard', { requireAuth: false })
       ])
-
-      const matchesData = await matchesRes.json()
-      const leaderboardData = await leaderboardRes.json()
 
       setStats({
         matches: matchesData.matches || [],

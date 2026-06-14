@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams()
@@ -26,19 +26,9 @@ const VerifyEmail = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE}/auth/send-verification`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ email: email.trim() })
-      })
+      const data = await api.post('/auth/send-verification', { email: email.trim() })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.message) {
         toast.success(data.message)
         startCountdown()
       } else {
@@ -59,19 +49,9 @@ const VerifyEmail = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE}/auth/verify-email`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ email: email.trim(), code: code.trim() })
-      })
+      const data = await api.post('/auth/verify-email', { email: email.trim(), code: code.trim() })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.message) {
         toast.success('邮箱验证成功！')
         setVerified(true)
         setTimeout(() => navigate('/profile'), 2000)

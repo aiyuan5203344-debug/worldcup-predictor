@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getTeamName, getTeamFlag } from '../utils/teams'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Teams = () => {
   const [teams, setTeams] = useState([])
@@ -17,9 +17,8 @@ const Teams = () => {
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch(`${API_BASE}/teams`)
-      const data = await response.json()
-      if (response.ok) {
+      const data = await api.get('/teams', { requireAuth: false })
+      if (data.teams) {
         setTeams(data.teams || [])
       }
     } catch (error) {

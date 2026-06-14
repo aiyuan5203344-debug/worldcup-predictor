@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Admin = () => {
   const [users, setUsers] = useState([])
@@ -30,16 +30,10 @@ const Admin = () => {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('accessToken')
-      const headers = { 'Authorization': `Bearer ${token}` }
-
-      const [usersRes, matchesRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/users`, { headers }),
-        fetch(`${API_BASE}/matches?limit=200`, { headers })
+      const [usersData, matchesData] = await Promise.all([
+        api.get('/admin/users'),
+        api.get('/matches?limit=200')
       ])
-
-      const usersData = await usersRes.json()
-      const matchesData = await matchesRes.json()
 
       setUsers(usersData.users || [])
       setMatches(matchesData.matches || [])
@@ -60,21 +54,12 @@ const Admin = () => {
     }
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId, newPassword })
-      })
+      const result = await api.post('/auth/reset-password', { userId, newPassword })
 
-      if (response.ok) {
+      if (result.message) {
         toast.success('密码重置成功')
       } else {
-        const data = await response.json()
-        toast.error(data.error || '重置失败')
+        toast.error(result.error || '重置失败')
       }
     } catch (error) {
       toast.error('网络错误')
@@ -85,13 +70,9 @@ const Admin = () => {
     if (!confirm(`确定要删除用户 ${username} 吗？`)) return
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const result = await api.delete(`/admin/users/${userId}`)
 
-      if (response.ok) {
+      if (result.message) {
         toast.success('用户已删除')
         fetchData()
       } else {
@@ -104,13 +85,9 @@ const Admin = () => {
 
   const handleSyncMatches = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`${API_BASE}/admin/sync-matches`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const result = await api.post('/admin/sync-matches')
 
-      if (response.ok) {
+      if (result.message) {
         toast.success('比赛数据同步成功')
         fetchData()
       } else {

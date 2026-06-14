@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { API_BASE } from '../config'
+import api from '../services/api'
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([])
@@ -19,13 +19,9 @@ const Leaderboard = () => {
   const fetchLeaderboard = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('accessToken')
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const data = await api.get(`/leaderboard?range=${timeRange}`, { requireAuth: false })
 
-      const response = await fetch(`${API_BASE}/leaderboard?range=${timeRange}`, { headers })
-      const data = await response.json()
-
-      if (response.ok) {
+      if (data.leaderboard) {
         setLeaderboard(data.leaderboard || [])
       } else {
         toast.error('获取排行榜失败')
