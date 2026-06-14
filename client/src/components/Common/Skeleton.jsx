@@ -1,89 +1,47 @@
-const Skeleton = ({ type = 'text', count = 1, className = '' }) => {
-  const getStyle = () => ({
-    background: 'linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'skeleton 1.5s ease-in-out infinite',
-    borderRadius: '8px'
-  })
-
-  const getHeight = () => {
-    switch (type) {
-      case 'title': return '32px'
-      case 'subtitle': return '24px'
-      case 'text': return '16px'
-      case 'avatar': return '48px'
-      case 'image': return '200px'
-      case 'card': return '120px'
-      default: return '16px'
-    }
-  }
-
-  const getWidth = () => {
-    switch (type) {
-      case 'title': return '60%'
-      case 'subtitle': return '40%'
-      case 'text': return '100%'
-      case 'avatar': return '48px'
-      case 'image': return '100%'
-      case 'card': return '100%'
-      default: return '100%'
-    }
-  }
-
+const Skeleton = ({ className = '', count = 1, style = {} }) => {
   return (
-    <div className={`space-y-3 ${className}`}>
-      {Array.from({ length: count }).map((_, index) => (
+    <div className={className} style={style}>
+      {Array.from({ length: count }).map((_, i) => (
         <div
-          key={index}
+          key={i}
+          className="animate-pulse rounded"
           style={{
-            ...getStyle(),
-            height: getHeight(),
-            width: getWidth()
+            background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.5s infinite',
+            marginBottom: i < count - 1 ? '8px' : 0
           }}
         />
       ))}
-      <style>{`
-        @keyframes skeleton {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
     </div>
   )
 }
 
-export const MatchCardSkeleton = () => (
-  <div className="p-4 rounded-xl" style={{ background: '#1a2332', border: '1px solid #1e293b' }}>
-    <div className="flex items-center justify-between mb-4">
-      <Skeleton type="text" count={1} className="w-24" />
-      <Skeleton type="text" count={1} className="w-16" />
-    </div>
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3 flex-1">
-        <Skeleton type="avatar" />
-        <Skeleton type="subtitle" count={1} className="flex-1" />
-      </div>
-      <Skeleton type="text" count={1} className="w-12 mx-4" />
-      <div className="flex items-center gap-3 flex-1 justify-end">
-        <Skeleton type="subtitle" count={1} className="flex-1" />
-        <Skeleton type="avatar" />
-      </div>
-    </div>
+export const SkeletonCard = ({ lines = 3, height = 16 }) => (
+  <div className="card p-4">
+    <Skeleton count={lines} style={{ height: `${height}px`, width: '100%' }} />
   </div>
 )
 
-export const LeaderboardSkeleton = () => (
-  <div className="space-y-3">
-    {Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} className="flex items-center gap-4 p-3 rounded-lg"
-        style={{ background: '#1a2332', border: '1px solid #1e293b' }}>
-        <Skeleton type="text" count={1} className="w-8" />
-        <Skeleton type="avatar" />
-        <div className="flex-1">
-          <Skeleton type="subtitle" count={1} className="w-32 mb-2" />
-          <Skeleton type="text" count={1} className="w-20" />
-        </div>
-        <Skeleton type="text" count={1} className="w-16" />
+export const SkeletonTable = ({ rows = 5, cols = 4 }) => (
+  <div className="card p-4">
+    {Array.from({ length: rows }).map((_, i) => (
+      <div key={i} className="flex gap-4" style={{ marginBottom: i < rows - 1 ? '12px' : 0 }}>
+        {Array.from({ length: cols }).map((_, j) => (
+          <Skeleton key={j} style={{ height: '14px', flex: 1 }} />
+        ))}
+      </div>
+    ))}
+  </div>
+)
+
+export const SkeletonStats = () => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="card p-6 text-center">
+        <Skeleton style={{ height: '32px', width: '32px', margin: '0 auto 8px' }} />
+        <Skeleton style={{ height: '28px', width: '60px', margin: '0 auto 8px' }} />
+        <Skeleton style={{ height: '14px', width: '50px', margin: '0 auto' }} />
       </div>
     ))}
   </div>

@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
-import ReactECharts from 'echarts-for-react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
+import { SkeletonStats } from '../components/Common/Skeleton'
+
+const ReactECharts = lazy(() => import('echarts-for-react'))
 
 const Charts = () => {
   const [stats, setStats] = useState(null)
@@ -30,6 +32,8 @@ const Charts = () => {
     }
   }
 
+  const chartTooltip = { backgroundColor: '#1e1e1e', borderColor: '#2a2a2a', textStyle: { color: '#fff' } }
+
   const getMatchStatusChart = () => {
     if (!stats) return {}
     const matches = stats.matches
@@ -40,21 +44,19 @@ const Charts = () => {
     }
 
     return {
-      tooltip: { trigger: 'item', backgroundColor: '#1a2332', borderColor: '#1e293b', textStyle: { color: '#f8fafc' } },
-      legend: { bottom: '5%', textStyle: { color: '#94a3b8' } },
+      tooltip: { trigger: 'item', ...chartTooltip },
+      legend: { bottom: '5%', textStyle: { color: '#a0a0a0' } },
       series: [{
         name: '比赛状态',
         type: 'pie',
         radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        itemStyle: { borderRadius: 10, borderColor: '#0a0e17', borderWidth: 2 },
+        itemStyle: { borderRadius: 10, borderColor: '#0a0a0a', borderWidth: 2 },
         label: { show: false, position: 'center' },
-        emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold', color: '#f8fafc' } },
-        labelLine: { show: false },
+        emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold', color: '#fff' } },
         data: [
-          { value: statusCount.upcoming, name: '未开始', itemStyle: { color: '#1e40af' } },
-          { value: statusCount.live, name: '进行中', itemStyle: { color: '#dc2626' } },
-          { value: statusCount.finished, name: '已结束', itemStyle: { color: '#059669' } }
+          { value: statusCount.upcoming, name: '未开始', itemStyle: { color: '#00d4ff' } },
+          { value: statusCount.live, name: '进行中', itemStyle: { color: '#ff3366' } },
+          { value: statusCount.finished, name: '已结束', itemStyle: { color: '#00ff87' } }
         ]
       }]
     }
@@ -70,29 +72,23 @@ const Charts = () => {
     }))
 
     return {
-      tooltip: { trigger: 'axis', backgroundColor: '#1a2332', borderColor: '#1e293b', textStyle: { color: '#f8fafc' } },
+      tooltip: { trigger: 'axis', ...chartTooltip },
       xAxis: {
         type: 'category',
         data: groups.map(g => `${g}组`),
-        axisLabel: { color: '#94a3b8' },
-        axisLine: { lineStyle: { color: '#1e293b' } }
+        axisLabel: { color: '#a0a0a0' },
+        axisLine: { lineStyle: { color: '#2a2a2a' } }
       },
       yAxis: {
         type: 'value',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#1e293b' } }
+        axisLabel: { color: '#a0a0a0' },
+        splitLine: { lineStyle: { color: '#2a2a2a' } }
       },
       series: [{
         data: groupData.map(d => d.value),
         type: 'bar',
         itemStyle: {
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: '#d4af37' },
-              { offset: 1, color: '#f4d03f' }
-            ]
-          },
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#00ff87' }, { offset: 1, color: '#00d4ff' }] },
           borderRadius: [4, 4, 0, 0]
         }
       }]
@@ -103,44 +99,26 @@ const Charts = () => {
     if (!stats) return {}
     const matches = stats.matches.filter(m => m.status === 'finished')
     const teamGoals = {}
-
     matches.forEach(m => {
-      if (m.home_team && m.home_score != null) {
-        teamGoals[m.home_team] = (teamGoals[m.home_team] || 0) + m.home_score
-      }
-      if (m.away_team && m.away_score != null) {
-        teamGoals[m.away_team] = (teamGoals[m.away_team] || 0) + m.away_score
-      }
+      if (m.home_team && m.home_score != null) teamGoals[m.home_team] = (teamGoals[m.home_team] || 0) + m.home_score
+      if (m.away_team && m.away_score != null) teamGoals[m.away_team] = (teamGoals[m.away_team] || 0) + m.away_score
     })
-
-    const sorted = Object.entries(teamGoals)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
+    const sorted = Object.entries(teamGoals).sort((a, b) => b[1] - a[1]).slice(0, 10)
 
     return {
-      tooltip: { trigger: 'axis', backgroundColor: '#1a2332', borderColor: '#1e293b', textStyle: { color: '#f8fafc' } },
-      xAxis: {
-        type: 'value',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#1e293b' } }
-      },
+      tooltip: { trigger: 'axis', ...chartTooltip },
+      xAxis: { type: 'value', axisLabel: { color: '#a0a0a0' }, splitLine: { lineStyle: { color: '#2a2a2a' } } },
       yAxis: {
         type: 'category',
         data: sorted.map(s => s[0]).reverse(),
-        axisLabel: { color: '#94a3b8' },
-        axisLine: { lineStyle: { color: '#1e293b' } }
+        axisLabel: { color: '#a0a0a0' },
+        axisLine: { lineStyle: { color: '#2a2a2a' } }
       },
       series: [{
         data: sorted.map(s => s[1]).reverse(),
         type: 'bar',
         itemStyle: {
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
-            colorStops: [
-              { offset: 0, color: '#d4af37' },
-              { offset: 1, color: '#f4d03f' }
-            ]
-          },
+          color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#ff6b35' }, { offset: 1, color: '#ff3366' }] },
           borderRadius: [0, 4, 4, 0]
         }
       }]
@@ -150,32 +128,20 @@ const Charts = () => {
   const getLeaderboardChart = () => {
     if (!stats) return {}
     const top10 = stats.leaderboard.slice(0, 10)
-
     return {
-      tooltip: { trigger: 'axis', backgroundColor: '#1a2332', borderColor: '#1e293b', textStyle: { color: '#f8fafc' } },
+      tooltip: { trigger: 'axis', ...chartTooltip },
       xAxis: {
         type: 'category',
         data: top10.map(u => u.nickname || u.username),
-        axisLabel: { color: '#94a3b8', rotate: 45 },
-        axisLine: { lineStyle: { color: '#1e293b' } }
+        axisLabel: { color: '#a0a0a0', rotate: 45 },
+        axisLine: { lineStyle: { color: '#2a2a2a' } }
       },
-      yAxis: {
-        type: 'value',
-        name: '积分',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#1e293b' } }
-      },
+      yAxis: { type: 'value', name: '积分', axisLabel: { color: '#a0a0a0' }, splitLine: { lineStyle: { color: '#2a2a2a' } } },
       series: [{
         data: top10.map(u => u.points || 0),
         type: 'bar',
         itemStyle: {
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: '#f4d03f' },
-              { offset: 1, color: '#d4af37' }
-            ]
-          },
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#00d4ff' }, { offset: 1, color: '#00ff87' }] },
           borderRadius: [4, 4, 0, 0]
         }
       }]
@@ -186,42 +152,24 @@ const Charts = () => {
     if (!stats) return {}
     const matches = stats.matches.filter(m => m.status === 'finished' && m.home_score != null && m.away_score != null)
     const scoreCounts = {}
-
     matches.forEach(m => {
       const totalGoals = m.home_score + m.away_score
       scoreCounts[totalGoals] = (scoreCounts[totalGoals] || 0) + 1
     })
-
     const sorted = Object.entries(scoreCounts).sort((a, b) => a[0] - b[0])
 
     return {
-      tooltip: { trigger: 'axis', backgroundColor: '#1a2332', borderColor: '#1e293b', textStyle: { color: '#f8fafc' } },
-      xAxis: {
-        type: 'category',
-        data: sorted.map(s => `${s[0]}球`),
-        axisLabel: { color: '#94a3b8' },
-        axisLine: { lineStyle: { color: '#1e293b' } }
-      },
-      yAxis: {
-        type: 'value',
-        name: '场次',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#1e293b' } }
-      },
+      tooltip: { trigger: 'axis', ...chartTooltip },
+      xAxis: { type: 'category', data: sorted.map(s => `${s[0]}球`), axisLabel: { color: '#a0a0a0' }, axisLine: { lineStyle: { color: '#2a2a2a' } } },
+      yAxis: { type: 'value', name: '场次', axisLabel: { color: '#a0a0a0' }, splitLine: { lineStyle: { color: '#2a2a2a' } } },
       series: [{
         data: sorted.map(s => s[1]),
         type: 'line',
         smooth: true,
-        lineStyle: { color: '#d4af37', width: 3 },
-        itemStyle: { color: '#d4af37' },
+        lineStyle: { color: '#00ff87', width: 3 },
+        itemStyle: { color: '#00ff87' },
         areaStyle: {
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(212, 175, 55, 0.4)' },
-              { offset: 1, color: 'rgba(212, 175, 55, 0)' }
-            ]
-          }
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0, 255, 135, 0.3)' }, { offset: 1, color: 'rgba(0, 255, 135, 0)' }] }
         }
       }]
     }
@@ -235,10 +183,25 @@ const Charts = () => {
     { id: 'scores', label: '比分分布', icon: '📈' }
   ]
 
+  const chartOptions = {
+    overview: getMatchStatusChart,
+    group: getGroupDistributionChart,
+    scorers: getTopScorersChart,
+    leaderboard: getLeaderboardChart,
+    scores: getScoreDistributionChart
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
+      <div className="min-h-screen p-4 md:p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-black mb-2" style={{ fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' }}>
+            <span style={{ background: 'linear-gradient(135deg, #00ff87, #00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              📊 数据可视化
+            </span>
+          </h1>
+        </div>
+        <SkeletonStats />
       </div>
     )
   }
@@ -246,27 +209,27 @@ const Charts = () => {
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-2">
-          📊 数据可视化
+        <h1 className="text-2xl md:text-3xl font-black mb-2" style={{ fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          <span style={{ background: 'linear-gradient(135deg, #00ff87, #00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            📊 数据可视化
+          </span>
         </h1>
-        <p className="text-text-secondary">
-          世界杯数据统计与分析
-        </p>
+        <p style={{ color: '#606060' }}>世界杯数据统计与分析</p>
       </div>
 
-      {/* Chart Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {charts.map(chart => (
           <button
             key={chart.id}
             onClick={() => setActiveChart(chart.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all whitespace-nowrap"
             style={{
-              background: activeChart === chart.id
-                ? 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)'
-                : '#1a2332',
-              color: activeChart === chart.id ? '#0a0e17' : '#94a3b8',
-              border: `1px solid ${activeChart === chart.id ? '#d4af37' : '#1e293b'}`
+              background: activeChart === chart.id ? 'linear-gradient(135deg, #00ff87, #00d4ff)' : '#1e1e1e',
+              color: activeChart === chart.id ? '#0a0a0a' : '#a0a0a0',
+              border: `1px solid ${activeChart === chart.id ? '#00ff87' : '#2a2a2a'}`,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontSize: '12px'
             }}
           >
             <span>{chart.icon}</span>
@@ -275,69 +238,27 @@ const Charts = () => {
         ))}
       </div>
 
-      {/* Chart Container */}
-      <div className="p-4 rounded-xl" style={{ background: '#1a2332', border: '1px solid #1e293b' }}>
-        {activeChart === 'overview' && (
-          <ReactECharts option={getMatchStatusChart()} style={{ height: '400px' }} />
-        )}
-        {activeChart === 'group' && (
-          <ReactECharts option={getGroupDistributionChart()} style={{ height: '400px' }} />
-        )}
-        {activeChart === 'scorers' && (
-          <ReactECharts option={getTopScorersChart()} style={{ height: '400px' }} />
-        )}
-        {activeChart === 'leaderboard' && (
-          <ReactECharts option={getLeaderboardChart()} style={{ height: '400px' }} />
-        )}
-        {activeChart === 'scores' && (
-          <ReactECharts option={getScoreDistributionChart()} style={{ height: '400px' }} />
-        )}
+      <div className="card p-4" style={{ minHeight: '400px' }}>
+        <Suspense fallback={
+          <div className="h-96 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8" style={{ border: '3px solid #2a2a2a', borderTopColor: '#00ff87' }}></div>
+          </div>
+        }>
+          <ReactECharts option={chartOptions[activeChart]()} style={{ height: '400px' }} />
+        </Suspense>
       </div>
 
-      {/* Stats Cards */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          {
-            label: '总场次',
-            value: stats?.matches?.length || 0,
-            icon: '⚽',
-            color: '#3b82f6'
-          },
-          {
-            label: '总进球',
-            value: stats?.matches
-              ?.filter(m => m.status === 'finished')
-              .reduce((sum, m) => sum + (m.home_score || 0) + (m.away_score || 0), 0) || 0,
-            icon: '🥅',
-            color: '#22c55e'
-          },
-          {
-            label: '场均进球',
-            value: (() => {
-              const finished = stats?.matches?.filter(m => m.status === 'finished') || []
-              const totalGoals = finished.reduce((sum, m) => sum + (m.home_score || 0) + (m.away_score || 0), 0)
-              return finished.length > 0 ? (totalGoals / finished.length).toFixed(1) : '0.0'
-            })(),
-            icon: '📈',
-            color: '#f59e0b'
-          },
-          {
-            label: '参与者',
-            value: stats?.leaderboard?.length || 0,
-            icon: '👥',
-            color: '#8b5cf6'
-          }
+          { label: '总场次', value: stats?.matches?.length || 0, icon: '⚽', color: '#00ff87' },
+          { label: '总进球', value: stats?.matches?.filter(m => m.status === 'finished').reduce((sum, m) => sum + (m.home_score || 0) + (m.away_score || 0), 0) || 0, icon: '🥅', color: '#00d4ff' },
+          { label: '场均进球', value: (() => { const f = stats?.matches?.filter(m => m.status === 'finished') || []; return f.length > 0 ? (f.reduce((s, m) => s + (m.home_score || 0) + (m.away_score || 0), 0) / f.length).toFixed(1) : '0.0' })(), icon: '📈', color: '#ff6b35' },
+          { label: '参与者', value: stats?.leaderboard?.length || 0, icon: '👥', color: '#a855f7' }
         ].map((stat, idx) => (
-          <div
-            key={idx}
-            className="p-4 rounded-xl text-center"
-            style={{ background: '#111827', border: '1px solid #1e293b' }}
-          >
+          <div key={idx} className="stat-card">
             <span className="text-2xl">{stat.icon}</span>
-            <p className="text-2xl font-bold mt-1" style={{ color: stat.color }}>
-              {stat.value}
-            </p>
-            <p className="text-text-secondary text-sm">{stat.label}</p>
+            <p className="text-2xl font-bold mt-1" style={{ color: stat.color }}>{stat.value}</p>
+            <p className="text-sm" style={{ color: '#606060' }}>{stat.label}</p>
           </div>
         ))}
       </div>

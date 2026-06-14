@@ -1,60 +1,27 @@
 import { Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import api from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
+import { useParallelApi } from '../hooks/useApi'
 import DailyCheckin from '../components/Common/DailyCheckin'
+import { SkeletonStats } from '../components/Common/Skeleton'
 
 const Home = () => {
   const { isAuthenticated } = useAuth()
-  const [stats, setStats] = useState({
-    teams: 48,
-    matches: 72,
-    users: 0,
-    predictions: 0,
-    aiAccuracy: 94.7
-  })
-  const [liveMatch, setLiveMatch] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { data, loading } = useParallelApi([
+    { endpoint: '/matches/stats/overview', requireAuth: false },
+    { endpoint: '/matches/live', requireAuth: false }
+  ])
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await api.get('/matches/stats/overview', { requireAuth: false })
-        if (data && !data.error) {
-          setStats(data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      }
-    }
-
-    const fetchLiveMatch = async () => {
-      try {
-        const data = await api.get('/matches/live', { requireAuth: false })
-        if (data?.matches?.length > 0) {
-          setLiveMatch(data.matches[0])
-        }
-      } catch (error) {
-        console.error('Failed to fetch live match:', error)
-      }
-    }
-
-    const loadData = async () => {
-      setLoading(true)
-      await Promise.all([fetchStats(), fetchLiveMatch()])
-      setLoading(false)
-    }
-
-    loadData()
-  }, [])
+  const stats = data?.['/matches/stats/overview'] || {
+    teams: 48, matches: 72, users: 0, predictions: 0, aiAccuracy: 94.7
+  }
+  const liveMatchData = data?.['/matches/live']
+  const liveMatch = liveMatchData?.matches?.[0] || null
 
   return (
     <div className="min-h-screen">
-      {/* Background */}
       <div className="bg-pattern"></div>
       <div className="hexagon-grid"></div>
 
-      {/* Content */}
       <div className="relative z-10">
         {/* Hero Section */}
         <section className="px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -77,8 +44,7 @@ const Home = () => {
             <span style={{ 
               background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 60px rgba(0, 255, 135, 0.3)'
+              WebkitTextFillColor: 'transparent'
             }}>
               今天你买球了吗
             </span>
@@ -90,7 +56,6 @@ const Home = () => {
             <span style={{ color: '#606060' }}>基于AI分析，与全球球迷一决高下</span>
           </p>
 
-          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!isAuthenticated ? (
               <>
@@ -102,8 +67,7 @@ const Home = () => {
                     color: '#0a0a0a',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
-                    boxShadow: '0 0 40px rgba(0, 255, 135, 0.4)',
-                    transition: 'all 0.3s'
+                    boxShadow: '0 0 40px rgba(0, 255, 135, 0.4)'
                   }}
                 >
                   🚀 立即加入
@@ -115,8 +79,7 @@ const Home = () => {
                     border: '2px solid #00ff87',
                     color: '#00ff87',
                     textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    transition: 'all 0.3s'
+                    letterSpacing: '1px'
                   }}
                 >
                   🔑 登录
@@ -140,7 +103,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Daily Checkin Section - Only for logged in users */}
         {isAuthenticated && (
           <section className="px-4 sm:px-6 lg:px-8 py-4">
             <div className="max-w-4xl mx-auto">
@@ -151,24 +113,25 @@ const Home = () => {
 
         {/* Stats Section */}
         <section className="px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { value: stats.teams.toString(), label: '参赛球队', icon: '🌍', color: '#00ff87' },
-              { value: stats.matches.toString(), label: '比赛场次', icon: '⚽', color: '#00d4ff' },
-              { value: stats.users > 0 ? `${stats.users.toLocaleString()}` : '1,000+', label: '预测用户', icon: '👥', color: '#ff6b35' },
-              { value: `${stats.aiAccuracy}%`, label: 'AI准确率', icon: '🤖', color: '#a855f7' },
-            ].map((stat, index) => (
-              <div 
-                key={index} 
-                className="stat-card"
-              >
-                <div className="text-3xl mb-2">{stat.icon}</div>
-                <div className="stat-value" style={{ color: stat.color }}>
-                  {loading ? '...' : stat.value}
-                </div>
-                <div className="stat-label">{stat.label}</div>
+          <div className="max-w-4xl mx-auto">
+            {loading ? (
+              <SkeletonStats />
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { value: stats.teams?.toString() || '48', label: '参赛球队', icon: '🌍', color: '#00ff87' },
+                  { value: stats.matches?.toString() || '72', label: '比赛场次', icon: '⚽', color: '#00d4ff' },
+                  { value: stats.users > 0 ? stats.users.toLocaleString() : '1,000+', label: '预测用户', icon: '👥', color: '#ff6b35' },
+                  { value: `${stats.aiAccuracy || 94.7}%`, label: 'AI准确率', icon: '🤖', color: '#a855f7' },
+                ].map((stat, index) => (
+                  <div key={index} className="stat-card">
+                    <div className="text-3xl mb-2">{stat.icon}</div>
+                    <div className="stat-value" style={{ color: stat.color }}>{stat.value}</div>
+                    <div className="stat-label">{stat.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </section>
 
@@ -191,29 +154,11 @@ const Home = () => {
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                {
-                  icon: '📊',
-                  title: '实时比分',
-                  desc: 'WebSocket实时推送，进球动画提醒',
-                  color: '#00ff87'
-                },
-                {
-                  icon: '🤖',
-                  title: 'AI预测',
-                  desc: '基于历史数据的智能预测分析',
-                  color: '#00d4ff'
-                },
-                {
-                  icon: '🏆',
-                  title: '排行榜',
-                  desc: '与好友比拼预测准确率',
-                  color: '#ff6b35'
-                },
+                { icon: '📊', title: '实时比分', desc: 'WebSocket实时推送，进球动画提醒', color: '#00ff87' },
+                { icon: '🤖', title: 'AI预测', desc: '基于历史数据的智能预测分析', color: '#00d4ff' },
+                { icon: '🏆', title: '排行榜', desc: '与好友比拼预测准确率', color: '#ff6b35' },
               ].map((feature, index) => (
-                <div 
-                  key={index} 
-                  className="card p-6 text-center"
-                >
+                <div key={index} className="card p-6 text-center">
                   <div className="text-4xl mb-4">{feature.icon}</div>
                   <h3 className="text-xl font-bold mb-2" style={{ 
                     fontFamily: 'Oswald, sans-serif',
@@ -260,9 +205,7 @@ const Home = () => {
 
                   <div className="flex items-center justify-between py-6">
                     <div className="flex items-center gap-4">
-                      <div className="team-badge">
-                        {liveMatch.home_flag || '🏳️'}
-                      </div>
+                      <div className="team-badge">{liveMatch.home_flag || '🏳️'}</div>
                       <div>
                         <h3 className="font-bold text-lg">{liveMatch.home_name_cn || liveMatch.home_team}</h3>
                         <span className="text-sm" style={{ color: '#606060' }}>{liveMatch.home_team}</span>
@@ -283,9 +226,7 @@ const Home = () => {
                         <h3 className="font-bold text-lg">{liveMatch.away_name_cn || liveMatch.away_team}</h3>
                         <span className="text-sm" style={{ color: '#606060' }}>{liveMatch.away_team}</span>
                       </div>
-                      <div className="team-badge">
-                        {liveMatch.away_flag || '🏳️'}
-                      </div>
+                      <div className="team-badge">{liveMatch.away_flag || '🏳️'}</div>
                     </div>
                   </div>
 
@@ -323,8 +264,7 @@ const Home = () => {
                   border: '2px solid #00ff87', 
                   color: '#00ff87',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  transition: 'all 0.3s'
+                  letterSpacing: '1px'
                 }}
               >
                 查看全部赛程 →
@@ -339,9 +279,7 @@ const Home = () => {
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ 
                 background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)'
-              }}>
-                ⚽
-              </div>
+              }}>⚽</div>
               <span className="font-bold" style={{ 
                 background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)',
                 WebkitBackgroundClip: 'text',
