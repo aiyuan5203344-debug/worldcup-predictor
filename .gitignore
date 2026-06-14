@@ -1,0 +1,10 @@
+node_modules/
+client/node_modules/
+server/node_modules/
+server/database/
+server/backups/
+client/dist/
+*.db
+.env
+server/.env
+client/.env
