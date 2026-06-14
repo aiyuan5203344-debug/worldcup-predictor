@@ -2,12 +2,12 @@
 // This file validates all required environment variables at startup
 
 const requiredEnvVars = [
-  'JWT_SECRET',
-  'PORT'
+  'JWT_SECRET'
 ]
 
 const optionalEnvVars = {
   NODE_ENV: 'development',
+  PORT: '3001',
   JWT_EXPIRES_IN: '2h',
   JWT_REFRESH_EXPIRES_IN: '7d',
   DATABASE_PATH: './database/worldcup.db',
