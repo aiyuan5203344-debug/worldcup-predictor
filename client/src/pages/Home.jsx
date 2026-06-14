@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
+import DailyCheckin from '../components/Common/DailyCheckin'
 
 const Home = () => {
+  const { isAuthenticated } = useAuth()
   const [stats, setStats] = useState({
     teams: 48,
     matches: 72,
@@ -72,7 +75,7 @@ const Home = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {!token ? (
+            {!isAuthenticated ? (
               <>
                 <Link 
                   to="/register" 
@@ -109,6 +112,15 @@ const Home = () => {
             )}
           </div>
         </section>
+
+        {/* Daily Checkin Section - Only for logged in users */}
+        {isAuthenticated && (
+          <section className="px-4 sm:px-6 lg:px-8 py-4">
+            <div className="max-w-4xl mx-auto">
+              <DailyCheckin />
+            </div>
+          </section>
+        )}
 
         {/* Stats Section */}
         <section className="px-4 sm:px-6 lg:px-8 py-12">

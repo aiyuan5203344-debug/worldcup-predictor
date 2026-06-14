@@ -244,6 +244,20 @@ export const initDatabase = async () => {
     )
   `)
 
+  // Daily checkins table - 每日签到
+  db.run(`
+    CREATE TABLE IF NOT EXISTS checkins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      checkin_date DATE NOT NULL,
+      streak INTEGER DEFAULT 1,
+      points_earned INTEGER DEFAULT 10,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, checkin_date)
+    )
+  `)
+
   // Performance: Add indexes for high-frequency queries
   db.run('CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status)')
   db.run('CREATE INDEX IF NOT EXISTS idx_matches_time ON matches(match_time)')
@@ -258,6 +272,8 @@ export const initDatabase = async () => {
   db.run('CREATE INDEX IF NOT EXISTS idx_players_position ON players(position)')
   db.run('CREATE INDEX IF NOT EXISTS idx_token_blacklist_token ON token_blacklist(token)')
   db.run('CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_checkins_user_id ON checkins(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_checkins_date ON checkins(checkin_date)')
 
   saveDatabase()
   logger.info('Database initialized successfully')
