@@ -187,14 +187,46 @@ app.get('/api/health', (req, res) => {
   }
 })
 
+// Debug: check paths
+app.get('/api/debug/paths', (req, res) => {
+  const serverDir = path.dirname(new URL(import.meta.url).pathname)
+  const cwd = process.cwd()
+  const checks = {}
+  const paths = [
+    path.join(serverDir, '..', 'client', 'dist'),
+    path.join(serverDir, '..', '..', 'client', 'dist'),
+    path.join(cwd, '..', 'client', 'dist'),
+    path.join(cwd, 'client', 'dist'),
+    path.join(cwd, '..', 'client'),
+    path.join(cwd, 'client')
+  ]
+  for (const p of paths) {
+    try { checks[p] = fs.existsSync(p) } catch { checks[p] = false }
+  }
+  res.json({ serverDir, cwd, checks })
+})
+
 // Serve static files in production
 if (config.isProduction) {
-  const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist')
-  if (fs.existsSync(clientDistPath)) {
+  const serverDir = path.dirname(new URL(import.meta.url).pathname)
+  const possiblePaths = [
+    path.join(serverDir, '..', 'client', 'dist'),
+    path.join(serverDir, '..', '..', 'client', 'dist'),
+    path.join(process.cwd(), '..', 'client', 'dist'),
+    path.join(process.cwd(), 'client', 'dist')
+  ]
+  let clientDistPath = possiblePaths.find(p => {
+    try { return fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html')) } catch { return false }
+  })
+  if (clientDistPath) {
+    logger.info(`✅ 静态文件目录: ${clientDistPath}`)
     app.use(express.static(clientDistPath))
     app.get('*', (req, res) => {
       res.sendFile(path.join(clientDistPath, 'index.html'))
     })
+  } else {
+    logger.warn('⚠️ 未找到前端构建目录，仅提供API服务')
+    possiblePaths.forEach(p => logger.warn(`  检查: ${p} -> ${fs.existsSync(p)}`))
   }
 }
 
