@@ -65,9 +65,9 @@ const Navbar = () => {
         left: 0,
         right: 0,
         height: '70px',
-        background: isDark ? 'rgba(10, 14, 23, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        background: isDark ? 'rgba(10, 10, 10, 0.98)' : 'rgba(15, 15, 15, 0.98)',
         backdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+        borderBottom: '2px solid #00ff87',
         zIndex: 50
       }}
     >
@@ -89,14 +89,15 @@ const Navbar = () => {
           <div 
             aria-hidden="true"
             style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)',
+              width: '44px',
+              height: '44px',
+              background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '20px'
+              fontSize: '22px',
+              boxShadow: '0 0 20px rgba(0, 255, 135, 0.4)'
             }}
           >
             ⚽
@@ -105,10 +106,12 @@ const Navbar = () => {
             fontFamily: 'Oswald, sans-serif',
             fontSize: '18px',
             fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)',
+            background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            display: 'none'
+            display: 'none',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
           }} className="sm:block">
             今天你买球了吗
           </span>
@@ -121,7 +124,7 @@ const Navbar = () => {
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: '8px',
+            gap: '4px',
             listStyle: 'none',
             margin: 0,
             padding: 0
@@ -138,15 +141,18 @@ const Navbar = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  borderRadius: '6px',
                   textDecoration: 'none',
-                  color: isActive(link.path) ? '#d4af37' : (isDark ? '#94a3b8' : '#64748b'),
-                  background: isActive(link.path) ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                  fontWeight: '500',
+                  color: isActive(link.path) ? '#00ff87' : '#a0a0a0',
+                  background: isActive(link.path) ? 'rgba(0, 255, 135, 0.1)' : 'transparent',
+                  fontWeight: isActive(link.path) ? '700' : '500',
                   fontSize: '14px',
-                  transition: 'all 0.2s ease'
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  transition: 'all 0.2s ease',
+                  borderLeft: isActive(link.path) ? '3px solid #00ff87' : '3px solid transparent'
                 }}
               >
                 <span aria-hidden="true">{link.icon}</span>
@@ -167,7 +173,7 @@ const Navbar = () => {
               padding: '8px',
               background: 'transparent',
               border: 'none',
-              color: '#d4af37',
+              color: '#00ff87',
               cursor: 'pointer',
               fontSize: '18px',
               borderRadius: '8px',
@@ -191,14 +197,16 @@ const Navbar = () => {
                   aria-label="管理员账户"
                   style={{
                     padding: '4px 10px',
-                    background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+                    background: 'linear-gradient(135deg, #ff3366 0%, #ff6b35 100%)',
                     color: 'white',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
                   }}
                 >
-                  <span aria-hidden="true">👑</span> 管理员
+                  <span aria-hidden="true">👑</span> ADMIN
                 </span>
               )}
               
@@ -208,13 +216,15 @@ const Navbar = () => {
                   aria-label="管理后台"
                   style={{
                     padding: '8px 12px',
-                    background: 'rgba(239, 68, 68, 0.2)',
-                    border: '1px solid #ef4444',
-                    color: '#ef4444',
-                    borderRadius: '8px',
+                    background: 'rgba(255, 51, 102, 0.15)',
+                    border: '1px solid #ff3366',
+                    color: '#ff3366',
+                    borderRadius: '6px',
                     textDecoration: 'none',
-                    fontWeight: '600',
-                    fontSize: '14px'
+                    fontWeight: '700',
+                    fontSize: '12px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}
                 >
                   <span aria-hidden="true">⚙️</span> 管理
@@ -228,12 +238,14 @@ const Navbar = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  background: isDark ? '#1a2332' : '#f1f5f9',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(0, 255, 135, 0.1)',
+                  border: '1px solid rgba(0, 255, 135, 0.3)',
                   textDecoration: 'none',
-                  color: isDark ? '#f8fafc' : '#1e293b',
-                  fontSize: '14px'
+                  color: '#00ff87',
+                  fontSize: '14px',
+                  fontWeight: '600'
                 }}
               >
                 <div 
@@ -241,7 +253,7 @@ const Navbar = () => {
                   style={{
                     width: '28px',
                     height: '28px',
-                    background: isAdmin ? 'rgba(239, 68, 68, 0.2)' : 'rgba(212, 175, 55, 0.2)',
+                    background: isAdmin ? 'rgba(255, 51, 102, 0.2)' : 'rgba(0, 255, 135, 0.2)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
@@ -259,10 +271,15 @@ const Navbar = () => {
                 style={{
                   padding: '8px 16px',
                   background: 'transparent',
-                  border: 'none',
-                  color: isDark ? '#94a3b8' : '#64748b',
+                  border: '1px solid #ff3366',
+                  color: '#ff3366',
+                  borderRadius: '6px',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  transition: 'all 0.2s'
                 }}
               >
                 退出
@@ -276,12 +293,14 @@ const Navbar = () => {
                 style={{
                   padding: '8px 16px',
                   background: 'transparent',
-                  border: '1px solid #d4af37',
-                  color: '#d4af37',
-                  borderRadius: '8px',
+                  border: '1px solid #00d4ff',
+                  color: '#00d4ff',
+                  borderRadius: '6px',
                   cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '14px'
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
                 }}
               >
                 游客浏览
@@ -292,12 +311,14 @@ const Navbar = () => {
                 style={{
                   padding: '8px 16px',
                   background: 'transparent',
-                  border: '1px solid #d4af37',
-                  color: '#d4af37',
-                  borderRadius: '8px',
+                  border: '1px solid #00ff87',
+                  color: '#00ff87',
+                  borderRadius: '6px',
                   textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '14px'
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
                 }}
               >
                 登录
@@ -307,12 +328,15 @@ const Navbar = () => {
                 aria-label="注册新账号"
                 style={{
                   padding: '8px 16px',
-                  background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)',
-                  color: '#0a0e17',
-                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #00ff87 0%, #00d4ff 100%)',
+                  color: '#0a0a0a',
+                  borderRadius: '6px',
                   textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '14px'
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 0 20px rgba(0, 255, 135, 0.3)'
                 }}
               >
                 注册
@@ -331,7 +355,7 @@ const Navbar = () => {
               padding: '8px',
               background: 'transparent',
               border: 'none',
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: '#00ff87',
               cursor: 'pointer'
             }}
           >
@@ -358,8 +382,8 @@ const Navbar = () => {
           maxHeight: mobileMenuOpen ? '400px' : '0',
           overflow: 'hidden',
           transition: 'all 0.3s ease',
-          borderTop: mobileMenuOpen ? `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}` : 'none',
-          background: isDark ? 'rgba(10, 14, 23, 0.98)' : 'rgba(255, 255, 255, 0.98)'
+          borderTop: mobileMenuOpen ? '1px solid #2a2a2a' : 'none',
+          background: 'rgba(10, 10, 10, 0.98)'
         }}
       >
         <ul role="menu" aria-label="移动端菜单" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -378,9 +402,11 @@ const Navbar = () => {
                   padding: '12px 16px',
                   borderRadius: '8px',
                   textDecoration: 'none',
-                  color: isActive(link.path) ? '#d4af37' : (isDark ? '#94a3b8' : '#64748b'),
-                  background: isActive(link.path) ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                  marginBottom: '4px'
+                  color: isActive(link.path) ? '#00ff87' : '#a0a0a0',
+                  background: isActive(link.path) ? 'rgba(0, 255, 135, 0.1)' : 'transparent',
+                  marginBottom: '4px',
+                  fontWeight: isActive(link.path) ? '700' : '500',
+                  borderLeft: isActive(link.path) ? '3px solid #00ff87' : '3px solid transparent'
                 }}
               >
                 <span aria-hidden="true">{link.icon}</span>
