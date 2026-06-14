@@ -95,7 +95,7 @@ app.use(requestLogger)
 // CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (mobile apps, curl, same-origin preflight)
     if (!origin) return callback(null, true)
 
     // In production, disallow wildcard
@@ -106,7 +106,18 @@ app.use(cors({
     if (corsOrigins.includes(origin) || corsOrigins.includes('*')) {
       callback(null, true)
     } else {
-      callback(new Error('不允许的CORS来源'))
+      // Also allow same-origin (origin matches the server's own URL)
+      try {
+        const originHost = new URL(origin).host
+        const allowedHosts = corsOrigins.map(o => { try { return new URL(o).host } catch { return null } }).filter(Boolean)
+        if (allowedHosts.includes(originHost)) {
+          callback(null, true)
+        } else {
+          callback(new Error('不允许的CORS来源: ' + origin))
+        }
+      } catch {
+        callback(new Error('不允许的CORS来源'))
+      }
     }
   },
   credentials: true,
@@ -195,18 +206,6 @@ if (config.isProduction) {
     const hasAssets = fs.existsSync(assetsPath)
     const assetFiles = hasAssets ? fs.readdirSync(assetsPath) : []
     logger.info('✅ 静态文件目录: ' + clientDistPath + ' | assets: ' + assetFiles.length + ' files')
-    if (assetFiles.length > 0) logger.info('   文件: ' + assetFiles.slice(0, 10).join(', '))
-
-    app.get('/api/debug/dist', (req, res) => {
-      res.json({
-        clientDistPath,
-        assetsPath,
-        hasAssets,
-        assetFiles: hasAssets ? fs.readdirSync(assetsPath) : [],
-        indexHtml: fs.existsSync(path.join(clientDistPath, 'index.html'))
-      })
-    })
-
     app.use(express.static(clientDistPath))
     app.get('*', (req, res) => {
       res.sendFile(path.join(clientDistPath, 'index.html'))
