@@ -191,7 +191,22 @@ app.get('/api/health', (req, res) => {
 if (config.isProduction) {
   const clientDistPath = path.resolve(process.cwd(), '..', 'client', 'dist')
   if (fs.existsSync(clientDistPath)) {
-    logger.info('✅ 静态文件目录: ' + clientDistPath)
+    const assetsPath = path.join(clientDistPath, 'assets')
+    const hasAssets = fs.existsSync(assetsPath)
+    const assetFiles = hasAssets ? fs.readdirSync(assetsPath) : []
+    logger.info('✅ 静态文件目录: ' + clientDistPath + ' | assets: ' + assetFiles.length + ' files')
+    if (assetFiles.length > 0) logger.info('   文件: ' + assetFiles.slice(0, 10).join(', '))
+
+    app.get('/api/debug/dist', (req, res) => {
+      res.json({
+        clientDistPath,
+        assetsPath,
+        hasAssets,
+        assetFiles: hasAssets ? fs.readdirSync(assetsPath) : [],
+        indexHtml: fs.existsSync(path.join(clientDistPath, 'index.html'))
+      })
+    })
+
     app.use(express.static(clientDistPath))
     app.get('*', (req, res) => {
       res.sendFile(path.join(clientDistPath, 'index.html'))
