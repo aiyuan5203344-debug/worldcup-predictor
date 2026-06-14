@@ -1,0 +1,48 @@
+{
+  "name": "今天你买球了吗",
+  "short_name": "买球",
+  "description": "2026世界杯预测平台 - 实时比分、AI预测、群聊互动",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e17",
+  "theme_color": "#d4af37",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "zh-CN",
+  "categories": ["sports", "entertainment"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "赛事",
+      "short_name": "赛事",
+      "url": "/matches",
+      "description": "查看所有比赛"
+    },
+    {
+      "name": "预测",
+      "short_name": "预测",
+      "url": "/predict",
+      "description": "提交你的预测"
+    },
+    {
+      "name": "排行榜",
+      "short_name": "排行",
+      "url": "/leaderboard",
+      "description": "查看排行榜"
+    }
+  ]
+}
