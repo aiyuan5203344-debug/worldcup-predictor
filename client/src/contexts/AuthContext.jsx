@@ -25,20 +25,29 @@ export const AuthProvider = ({ children }) => {
       setIsGuest(true)
       setLoading(false)
     } else {
-      // Try to load user from cookie (HttpOnly)
-      loadUser()
+      // Quick auth check - don't block page on cold start
+      setLoading(false)
+      loadUserInBackground()
     }
   }, [])
 
+  const loadUserInBackground = async () => {
+    try {
+      const response = await authAPI.getMe({ requireAuth: false })
+      if (response?.data?.user) {
+        setUser(response.data.user)
+        setIsGuest(false)
+        localStorage.removeItem('isGuest')
+      }
+    } catch (error) {
+      clearTokens()
+    }
+  }
+
   const loadUser = async () => {
     try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 5000)
-      const response = await authAPI.getMe({ signal: controller.signal })
-      clearTimeout(timeout)
-      setUser(response.data.user)
-      setIsGuest(false)
-      localStorage.removeItem('isGuest')
+      const response = await authAPI.getMe({ requireAuth: false })
+      setUser(response?.data?.user || null)
     } catch (error) {
       clearTokens()
     } finally {
