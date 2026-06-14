@@ -94,10 +94,7 @@ app.use(requestLogger)
 
 // CORS configuration
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow all origins - mobile apps, curl, same-origin with crossorigin attribute
-    callback(null, true)
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
