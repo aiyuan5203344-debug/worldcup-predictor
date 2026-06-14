@@ -95,30 +95,8 @@ app.use(requestLogger)
 // CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, same-origin preflight)
-    if (!origin) return callback(null, true)
-
-    // In production, disallow wildcard
-    if (config.isProduction && corsOrigins.includes('*')) {
-      return callback(new Error('Production CORS cannot use wildcard'))
-    }
-
-    if (corsOrigins.includes(origin) || corsOrigins.includes('*')) {
-      callback(null, true)
-    } else {
-      // Also allow same-origin (origin matches the server's own URL)
-      try {
-        const originHost = new URL(origin).host
-        const allowedHosts = corsOrigins.map(o => { try { return new URL(o).host } catch { return null } }).filter(Boolean)
-        if (allowedHosts.includes(originHost)) {
-          callback(null, true)
-        } else {
-          callback(new Error('不允许的CORS来源: ' + origin))
-        }
-      } catch {
-        callback(new Error('不允许的CORS来源'))
-      }
-    }
+    // Allow all origins - mobile apps, curl, same-origin with crossorigin attribute
+    callback(null, true)
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
