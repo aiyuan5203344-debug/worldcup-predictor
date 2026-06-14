@@ -1,4 +1,5 @@
 import logger from '../utils/logger.js'
+import config from '../config.js'
 
 export const errorHandler = (err, req, res, next) => {
   // Log error

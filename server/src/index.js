@@ -220,14 +220,14 @@ const createBackup = () => {
     const backupPath = path.join(BACKUP_DIR, `worldcup-${timestamp}.db`)
     
     fs.writeFileSync(backupPath, buffer)
-    console.log(`✅ Database backup created: ${backupPath}`)
+    logger.info(`✅ Database backup created: ${backupPath}`)
     
     // Clean old backups
     cleanOldBackups()
     
     return backupPath
   } catch (error) {
-    console.error('❌ Database backup failed:', error)
+    logger.error('❌ Database backup failed:', error)
     return null
   }
 }
@@ -250,11 +250,11 @@ const cleanOldBackups = () => {
     if (files.length > MAX_BACKUPS) {
       files.slice(MAX_BACKUPS).forEach(f => {
         fs.unlinkSync(f.path)
-        console.log(`🗑️ Deleted old backup: ${f.name}`)
+        logger.info(`🗑️ Deleted old backup: ${f.name}`)
       })
     }
   } catch (error) {
-    console.error('❌ Clean old backups failed:', error)
+    logger.error('❌ Clean old backups failed:', error)
   }
 }
 
@@ -268,7 +268,7 @@ const scheduleBackup = () => {
   }
   
   const delay = nextBackup.getTime() - now.getTime()
-  console.log(`⏰ Next database backup scheduled at: ${nextBackup.toLocaleString()}`)
+  logger.info(`⏰ Next database backup scheduled at: ${nextBackup.toLocaleString()}`)
   
   setTimeout(() => {
     createBackup()
@@ -281,7 +281,7 @@ const scheduleBackup = () => {
 const scheduleTokenCleanup = () => {
   setInterval(() => {
     cleanExpiredTokens()
-    console.log('🧹 Cleaned expired tokens from blacklist')
+    logger.info('🧹 Cleaned expired tokens from blacklist')
   }, 60 * 60 * 1000) // Every hour
 }
 
@@ -292,30 +292,30 @@ const gracefulShutdown = async (signal) => {
   if (isShuttingDown) return
   isShuttingDown = true
   
-  console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`)
+  logger.info(`\n🛑 Received ${signal}. Starting graceful shutdown...`)
   
   // Stop accepting new connections
   httpServer.close(() => {
-    console.log('✅ HTTP server closed')
+    logger.info('✅ HTTP server closed')
   })
   
   // Close Socket.io connections
   io.close(() => {
-    console.log('✅ Socket.io closed')
+    logger.info('✅ Socket.io closed')
   })
   
   // Save database before exit
   try {
     saveDatabase()
-    console.log('✅ Database saved')
+    logger.info('✅ Database saved')
   } catch (error) {
-    console.error('❌ Error saving database:', error)
+    logger.error('❌ Error saving database:', error)
   }
   
   // Create final backup
   createBackup()
   
-  console.log('👋 Server shut down gracefully')
+  logger.info('👋 Server shut down gracefully')
   process.exit(0)
 }
 
@@ -325,12 +325,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error)
+  logger.error('❌ Uncaught Exception:', error)
   gracefulShutdown('uncaughtException')
 })
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
+  logger.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
 // Initialize database and start server
@@ -351,18 +351,18 @@ initDatabase().then(async () => {
   scheduleTokenCleanup()
   
   httpServer.listen(config.port, () => {
-    console.log(`🚀 Server running on port ${config.port}`)
-    console.log(`📊 Environment: ${config.nodeEnv}`)
-    console.log(`💾 Database backups: ${BACKUP_DIR}`)
-    console.log(`⚽ 65 matches with AI predictions loaded`)
+    logger.info(`🚀 Server running on port ${config.port}`)
+    logger.info(`📊 Environment: ${config.nodeEnv}`)
+    logger.info(`💾 Database backups: ${BACKUP_DIR}`)
+    logger.info(`⚽ 65 matches with AI predictions loaded`)
     
     // Start live match simulator
     const db = getDatabaseInstance()
     startLiveSimulator(io, db)
-    console.log(`🎮 Live match simulator started`)
+    logger.info(`🎮 Live match simulator started`)
   })
 }).catch((err) => {
-  console.error('Failed to initialize database:', err)
+  logger.error('Failed to initialize database:', err)
   process.exit(1)
 })
 

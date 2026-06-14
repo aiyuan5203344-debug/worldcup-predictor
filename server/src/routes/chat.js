@@ -4,6 +4,46 @@ import { authenticateToken, optionalAuth } from '../middleware/auth.js'
 
 const router = express.Router()
 
+// Chat rate limiting - 10 messages per user per minute per room
+const chatRateLimit = new Map()
+
+const checkChatRateLimit = (userId, roomId) => {
+  const key = `${userId}:${roomId}`
+  const now = Date.now()
+  const windowMs = 60 * 1000 // 1 minute
+  const maxMessages = 10
+
+  if (!chatRateLimit.has(key)) {
+    chatRateLimit.set(key, [])
+  }
+
+  const timestamps = chatRateLimit.get(key)
+  
+  // Remove timestamps outside the window
+  const validTimestamps = timestamps.filter(t => now - t < windowMs)
+  chatRateLimit.set(key, validTimestamps)
+
+  if (validTimestamps.length >= maxMessages) {
+    return false // Rate limit exceeded
+  }
+
+  validTimestamps.push(now)
+  return true
+}
+
+// Cleanup old rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, timestamps] of chatRateLimit.entries()) {
+    const validTimestamps = timestamps.filter(t => now - t < 60000)
+    if (validTimestamps.length === 0) {
+      chatRateLimit.delete(key)
+    } else {
+      chatRateLimit.set(key, validTimestamps)
+    }
+  }
+}, 5 * 60 * 1000)
+
 // Get messages for a room
 router.get('/:roomId/messages', optionalAuth, (req, res, next) => {
   try {
@@ -45,6 +85,11 @@ router.post('/:roomId/messages', authenticateToken, (req, res, next) => {
 
     if (content.length > 500) {
       return res.status(400).json({ error: 'Message too long (max 500 characters)' })
+    }
+
+    // Rate limit check
+    if (!checkChatRateLimit(req.user.id, roomId)) {
+      return res.status(429).json({ error: '发送太频繁，请稍后再试（每分钟最多10条消息）' })
     }
 
     const result = dbRun(`

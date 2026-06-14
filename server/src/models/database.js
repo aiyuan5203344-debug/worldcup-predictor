@@ -2,6 +2,7 @@ import initSqlJs from 'sql.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import logger from '../utils/logger.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -259,7 +260,7 @@ export const initDatabase = async () => {
   db.run('CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)')
 
   saveDatabase()
-  console.log('Database initialized successfully')
+  logger.info('Database initialized successfully')
 }
 
 export const saveDatabase = () => {

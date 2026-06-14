@@ -1,6 +1,7 @@
 import express from 'express'
 import { dbAll, dbGet, dbRun } from '../models/database.js'
 import { authenticateToken } from '../middleware/auth.js'
+import logger from '../utils/logger.js'
 
 const router = express.Router()
 
@@ -54,7 +55,7 @@ router.get('/', authenticateToken, async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Get achievements error:', error)
+    logger.error('Get achievements error:', error)
     res.status(500).json({ error: '获取成就失败' })
   }
 })
@@ -80,7 +81,7 @@ router.get('/my', authenticateToken, async (req, res) => {
 
     res.json({ achievements })
   } catch (error) {
-    console.error('Get my achievements error:', error)
+    logger.error('Get my achievements error:', error)
     res.status(500).json({ error: '获取我的成就失败' })
   }
 })
@@ -112,9 +113,9 @@ router.post('/check', authenticateToken, async (req, res) => {
     )?.count || 0
 
     const leaderboard = dbGet(
-      'SELECT position FROM leaderboard WHERE user_id = ?',
+      'SELECT rank FROM leaderboard WHERE user_id = ?',
       [userId]
-    )?.position
+    )?.rank
 
     // Check each achievement
     const checks = [
@@ -158,7 +159,7 @@ router.post('/check', authenticateToken, async (req, res) => {
         : '暂无新成就'
     })
   } catch (error) {
-    console.error('Check achievements error:', error)
+    logger.error('Check achievements error:', error)
     res.status(500).json({ error: '检查成就失败' })
   }
 })

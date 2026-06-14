@@ -121,11 +121,11 @@ async function createAdmin() {
     )
   `)
 
-  // Admin credentials
+  // Admin credentials from environment variables or defaults
   const adminData = {
-    username: 'jtnmqlm',
-    password: 'a1234567',
-    nickname: '超级管理员',
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || Math.random().toString(36).slice(-12),
+    nickname: process.env.ADMIN_NICKNAME || '超级管理员',
     role: 'admin'
   }
 

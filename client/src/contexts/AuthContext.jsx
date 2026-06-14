@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authAPI } from '../services/api'
+import { authAPI, setTokens, clearTokens } from '../services/api'
 import toast from 'react-hot-toast'
 
 const AuthContext = createContext(null)
@@ -17,18 +17,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [isGuest, setIsGuest] = useState(false)
 
-  // Check if user is logged in on mount
+  // Check if user is logged in on mount (via cookie)
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
     const guestMode = localStorage.getItem('isGuest')
 
-    if (token) {
-      loadUser()
-    } else if (guestMode === 'true') {
+    if (guestMode === 'true') {
       setIsGuest(true)
       setLoading(false)
     } else {
-      setLoading(false)
+      // Try to load user from cookie (HttpOnly)
+      loadUser()
     }
   }, [])
 
@@ -39,9 +37,8 @@ export const AuthProvider = ({ children }) => {
       setIsGuest(false)
       localStorage.removeItem('isGuest')
     } catch (error) {
-      console.error('Failed to load user:', error)
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      // Cookie expired or invalid - user needs to login again
+      clearTokens()
     } finally {
       setLoading(false)
     }
@@ -52,8 +49,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register({ username, password })
       const { user, accessToken, refreshToken } = response.data
 
-      localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
+      // Store tokens in memory (HttpOnly cookies are set by server)
+      setTokens(accessToken, refreshToken)
       localStorage.removeItem('isGuest')
 
       setUser(user)
@@ -72,8 +69,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ username, password })
       const { user, accessToken, refreshToken } = response.data
 
-      localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
+      // Store tokens in memory (HttpOnly cookies are set by server)
+      setTokens(accessToken, refreshToken)
       localStorage.removeItem('isGuest')
 
       setUser(user)
@@ -88,8 +85,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = useCallback(() => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    clearTokens()
     localStorage.removeItem('isGuest')
     setUser(null)
     setIsGuest(false)

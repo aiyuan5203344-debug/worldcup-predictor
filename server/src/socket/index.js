@@ -1,7 +1,34 @@
 import jwt from 'jsonwebtoken'
 import { dbGet, dbRun } from '../models/database.js'
+import logger from '../utils/logger.js'
 
 const onlineUsers = new Map()
+
+// Chat rate limiting for socket - 10 messages per user per minute
+const socketRateLimit = new Map()
+
+const checkSocketRateLimit = (userId) => {
+  const now = Date.now()
+  const windowMs = 60 * 1000 // 1 minute
+  const maxMessages = 10
+
+  if (!socketRateLimit.has(userId)) {
+    socketRateLimit.set(userId, [])
+  }
+
+  const timestamps = socketRateLimit.get(userId)
+  
+  // Remove timestamps outside the window
+  const validTimestamps = timestamps.filter(t => now - t < windowMs)
+  socketRateLimit.set(userId, validTimestamps)
+
+  if (validTimestamps.length >= maxMessages) {
+    return false // Rate limit exceeded
+  }
+
+  validTimestamps.push(now)
+  return true
+}
 
 export const setupSocketHandlers = (io) => {
   // 允许可选认证（未登录可查看，但不能发送）
@@ -33,7 +60,7 @@ export const setupSocketHandlers = (io) => {
 
   io.on('connection', (socket) => {
     const username = socket.user?.username || '匿名用户'
-    console.log(`User connected: ${username}`)
+    logger.info(`User connected: ${username}`)
 
     if (socket.user) {
       onlineUsers.set(socket.user.id, {
@@ -46,7 +73,7 @@ export const setupSocketHandlers = (io) => {
 
     socket.on('joinRoom', (roomId) => {
       socket.join(roomId)
-      console.log(`${username} joined room: ${roomId}`)
+      logger.info(`${username} joined room: ${roomId}`)
       io.to(roomId).emit('userJoined', {
         userId: socket.user?.id,
         username,
@@ -56,7 +83,7 @@ export const setupSocketHandlers = (io) => {
 
     socket.on('leaveRoom', (roomId) => {
       socket.leave(roomId)
-      console.log(`${username} left room: ${roomId}`)
+      logger.info(`${username} left room: ${roomId}`)
       io.to(roomId).emit('userLeft', {
         userId: socket.user?.id,
         username,
@@ -78,6 +105,11 @@ export const setupSocketHandlers = (io) => {
 
       if (content.length > 500) {
         return socket.emit('error', { message: '消息过长（最多500字）' })
+      }
+
+      // Rate limit check
+      if (!checkSocketRateLimit(socket.user.id)) {
+        return socket.emit('error', { message: '发送太频繁，请稍后再试（每分钟最多10条消息）' })
       }
 
       const result = dbRun(`
@@ -112,7 +144,7 @@ export const setupSocketHandlers = (io) => {
     })
 
     socket.on('disconnect', () => {
-      console.log(`User disconnected: ${username}`)
+      logger.info(`User disconnected: ${username}`)
       if (socket.user) {
         onlineUsers.delete(socket.user.id)
         io.emit('onlineUsers', Array.from(onlineUsers.values()))

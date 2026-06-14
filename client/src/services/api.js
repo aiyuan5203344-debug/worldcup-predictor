@@ -1,35 +1,30 @@
 import { API_BASE } from '../config'
 
-// Token management (stored in memory for CSRF protection, cookies for auth)
+// Token management (stored in memory only for CSRF protection, cookies for auth)
 let accessToken = null
 let refreshToken = null
 
-// Get stored token (memory first, fallback to localStorage for compatibility)
+// Get stored token (memory only - HttpOnly cookies handle auth)
 function getToken() {
-  return accessToken || localStorage.getItem('token')
+  return accessToken
 }
 
-// Get refresh token
+// Get refresh token (memory only)
 function getRefreshToken() {
-  return refreshToken || localStorage.getItem('refreshToken')
+  return refreshToken
 }
 
-// Store tokens (memory + localStorage fallback)
+// Store tokens (memory only - HttpOnly cookies handle auth)
 function setTokens(newAccessToken, newRefreshToken) {
   accessToken = newAccessToken
   refreshToken = newRefreshToken
-  // Keep in localStorage as fallback for older browsers
-  if (newAccessToken) localStorage.setItem('token', newAccessToken)
-  if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken)
+  // Note: HttpOnly cookies are set by the server, we only keep in memory for CSRF
 }
 
 // Clear tokens
 function clearTokens() {
   accessToken = null
   refreshToken = null
-  localStorage.removeItem('token')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('user')
 }
 
 // Handle token refresh via cookie

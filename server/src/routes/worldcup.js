@@ -1,5 +1,7 @@
 import express from 'express'
 import { dbRun, dbGet, dbAll } from '../models/database.js'
+import { authenticateToken, optionalAuth } from '../middleware/auth.js'
+import logger from '../utils/logger.js'
 
 const router = express.Router()
 
@@ -47,7 +49,12 @@ const callAPI = async (endpoint, params = {}) => {
 }
 
 // Sync matches from API-FOOTBALL
-router.post('/sync', async (req, res) => {
+router.post('/sync', authenticateToken, async (req, res) => {
+  // Only admin can sync
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: '需要管理员权限' })
+  }
+
   try {
     const apiKey = getApiKey()
     if (!apiKey) {
@@ -57,7 +64,7 @@ router.post('/sync', async (req, res) => {
       })
     }
 
-    console.log('🔄 Syncing World Cup data...')
+    logger.info('🔄 Syncing World Cup data...')
     const data = await callAPI('/fixtures')
     
     if (!data.response?.length) {
@@ -83,10 +90,10 @@ router.post('/sync', async (req, res) => {
            teams.home.logo, teams.away.logo, fixture.venue?.name, fixture.id.toString()])
         updated++
       } else {
-        dbRun(`INSERT INTO matches (external_id,home_team,away_team,home_name_en,away_name_en,
+        dbRun(`INSERT INTO matches (external_id,home_team,away_team,
                home_flag,away_flag,home_score,away_score,match_time,status,group_name,stage,venue,current_minute)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [fixture.id.toString(), homeCode, awayCode, teams.home.name, teams.away.name,
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [fixture.id.toString(), homeCode, awayCode,
            teams.home.logo, teams.away.logo, goals.home, goals.away, fixture.date,
            mapStatus(fixture.status?.short), league.round?.replace('Group ',''),
            league.round?.includes('Group') ? '小组赛' : league.round,
@@ -95,10 +102,10 @@ router.post('/sync', async (req, res) => {
       }
     }
 
-    console.log(`✅ Sync: ${synced} new, ${updated} updated`)
+    logger.info(`✅ Sync: ${synced} new, ${updated} updated`)
     res.json({ message: '同步完成', synced, updated, total: data.response.length })
   } catch (error) {
-    console.error('❌ Sync error:', error.message)
+    logger.error('❌ Sync error:', error.message)
     if (error.message === 'API_KEY_NOT_CONFIGURED') {
       res.status(400).json({ error: '请先配置API密钥', message: '在 server/.env 中设置 API_FOOTBALL_KEY' })
     } else {

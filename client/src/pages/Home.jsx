@@ -1,7 +1,49 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import api from '../services/api'
 
 const Home = () => {
-  const token = localStorage.getItem('accessToken')
+  const [stats, setStats] = useState({
+    teams: 48,
+    matches: 72,
+    users: 0,
+    predictions: 0,
+    aiAccuracy: 94.7
+  })
+  const [liveMatch, setLiveMatch] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await api.get('/matches/stats/overview', { requireAuth: false })
+        if (data && !data.error) {
+          setStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    const fetchLiveMatch = async () => {
+      try {
+        const data = await api.get('/matches/live', { requireAuth: false })
+        if (data?.matches?.length > 0) {
+          setLiveMatch(data.matches[0])
+        }
+      } catch (error) {
+        console.error('Failed to fetch live match:', error)
+      }
+    }
+
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([fetchStats(), fetchLiveMatch()])
+      setLoading(false)
+    }
+
+    loadData()
+  }, [])
 
   return (
     <div className="min-h-screen">
@@ -72,10 +114,10 @@ const Home = () => {
         <section className="px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: '48', label: '参赛球队', icon: '🌍' },
-              { value: '104', label: '比赛场次', icon: '⚽' },
-              { value: '2.1M+', label: '预测用户', icon: '👥' },
-              { value: '94.7%', label: 'AI准确率', icon: '🤖' },
+              { value: stats.teams.toString(), label: '参赛球队', icon: '🌍' },
+              { value: stats.matches.toString(), label: '比赛场次', icon: '⚽' },
+              { value: stats.users > 0 ? `${stats.users.toLocaleString()}` : '1,000+', label: '预测用户', icon: '👥' },
+              { value: `${stats.aiAccuracy}%`, label: 'AI准确率', icon: '🤖' },
             ].map((stat, index) => (
               <div 
                 key={index} 
@@ -91,7 +133,7 @@ const Home = () => {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
                 }}>
-                  {stat.value}
+                  {loading ? '...' : stat.value}
                 </div>
                 <div className="text-sm mt-1" style={{ color: '#64748b' }}>{stat.label}</div>
               </div>
@@ -156,68 +198,82 @@ const Home = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
-                今日热门
+                {liveMatch ? '正在直播' : '今日热门'}
               </span>
             </h2>
 
             <div className="rounded-2xl p-6" style={{ background: '#1a2332', border: '1px solid #1e293b' }}>
-              <div className="flex items-center justify-between mb-4">
-                <span className="live-badge">
-                  <span className="live-dot"></span>
-                  LIVE
-                </span>
-                <span className="text-sm" style={{ color: '#64748b' }}>小组赛 · A组</span>
-              </div>
+              {liveMatch ? (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="live-badge">
+                      <span className="live-dot"></span>
+                      LIVE
+                    </span>
+                    <span className="text-sm" style={{ color: '#64748b' }}>
+                      {liveMatch.stage} · {liveMatch.group_name ? `${liveMatch.group_name}组` : ''}
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-between py-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ background: '#111827' }}>
-                    🇧🇷
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">巴西</h3>
-                    <span className="text-sm" style={{ color: '#64748b' }}>Brazil</span>
-                  </div>
-                </div>
+                  <div className="flex items-center justify-between py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ background: '#111827' }}>
+                        {liveMatch.home_flag || '🏳️'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">{liveMatch.home_name_cn || liveMatch.home_team}</h3>
+                        <span className="text-sm" style={{ color: '#64748b' }}>{liveMatch.home_team}</span>
+                      </div>
+                    </div>
 
-                <div className="text-center">
-                  <div className="text-4xl font-bold" style={{ 
-                    background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}>
-                    2 : 1
-                  </div>
-                  <div className="text-sm mt-1" style={{ color: '#10b981' }}>67'</div>
-                </div>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold" style={{ 
+                        background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>
+                        {liveMatch.home_score} : {liveMatch.away_score}
+                      </div>
+                      <div className="text-sm mt-1" style={{ color: '#10b981' }}>
+                        {liveMatch.current_minute ? `${liveMatch.current_minute}'` : '进行中'}
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <h3 className="font-bold text-lg">德国</h3>
-                    <span className="text-sm" style={{ color: '#64748b' }}>Germany</span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <h3 className="font-bold text-lg">{liveMatch.away_name_cn || liveMatch.away_team}</h3>
+                        <span className="text-sm" style={{ color: '#64748b' }}>{liveMatch.away_team}</span>
+                      </div>
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ background: '#111827' }}>
+                        {liveMatch.away_flag || '🏳️'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ background: '#111827' }}>
-                    🇩🇪
-                  </div>
-                </div>
-              </div>
 
-              <div className="pt-4" style={{ borderTop: '1px solid #1e293b' }}>
-                <div className="flex gap-3">
-                  <div className="flex-1 rounded-lg p-3 text-center" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                    <div className="font-bold" style={{ color: '#10b981' }}>1.85</div>
-                    <div className="text-xs" style={{ color: '#64748b' }}>主胜</div>
+                  <div className="pt-4" style={{ borderTop: '1px solid #1e293b' }}>
+                    <div className="flex gap-3">
+                      <div className="flex-1 rounded-lg p-3 text-center" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        <div className="font-bold" style={{ color: '#10b981' }}>{liveMatch.home_win_prob || '45'}%</div>
+                        <div className="text-xs" style={{ color: '#64748b' }}>主胜</div>
+                      </div>
+                      <div className="flex-1 rounded-lg p-3 text-center" style={{ background: '#111827' }}>
+                        <div className="font-bold" style={{ color: '#94a3b8' }}>{liveMatch.draw_prob || '25'}%</div>
+                        <div className="text-xs" style={{ color: '#64748b' }}>平局</div>
+                      </div>
+                      <div className="flex-1 rounded-lg p-3 text-center" style={{ background: '#111827' }}>
+                        <div className="font-bold" style={{ color: '#94a3b8' }}>{liveMatch.away_win_prob || '30'}%</div>
+                        <div className="text-xs" style={{ color: '#64748b' }}>客胜</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 rounded-lg p-3 text-center" style={{ background: '#111827' }}>
-                    <div className="font-bold" style={{ color: '#94a3b8' }}>3.40</div>
-                    <div className="text-xs" style={{ color: '#64748b' }}>平局</div>
-                  </div>
-                  <div className="flex-1 rounded-lg p-3 text-center" style={{ background: '#111827' }}>
-                    <div className="font-bold" style={{ color: '#94a3b8' }}>4.20</div>
-                    <div className="text-xs" style={{ color: '#64748b' }}>客胜</div>
-                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-4">⚽</div>
+                  <p className="text-lg" style={{ color: '#64748b' }}>暂无直播比赛</p>
+                  <p className="text-sm mt-2" style={{ color: '#475569' }}>查看完整赛程，提前预测比赛结果</p>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="text-center mt-6">

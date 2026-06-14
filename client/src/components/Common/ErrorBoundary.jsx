@@ -1,5 +1,21 @@
 import { Component } from 'react'
 
+// Simple error reporter - can be connected to Sentry/LogRocket later
+const reportError = (error, errorInfo) => {
+  // Log to console in development
+  if (process.env.NODE_ENV === 'development') {
+    console.error('ErrorBoundary caught:', error, errorInfo)
+  }
+  
+  // In production, you can send to Sentry:
+  // if (window.Sentry) {
+  //   window.Sentry.captureException(error, { extra: errorInfo })
+  // }
+  
+  // For now, just log to console
+  console.error('Production error:', { error, errorInfo })
+}
+
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props)
@@ -15,14 +31,8 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo)
     this.setState({ errorInfo })
-    
-    // Report to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to Sentry or similar
-      console.error('Production error:', { error, errorInfo })
-    }
+    reportError(error, errorInfo)
   }
 
   handleRetry = () => {
