@@ -143,8 +143,8 @@ export { API_BASE, getToken, setTokens, clearTokens }
 
 // Auth API for AuthContext compatibility
 export const authAPI = {
-  getMe: async () => {
-    const response = await request('/auth/me')
+  getMe: async (opts = {}) => {
+    const response = await request('/auth/me', opts)
     return { data: response }
   },
   login: (data) => request('/auth/login', {

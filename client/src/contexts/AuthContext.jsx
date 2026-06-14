@@ -32,12 +32,14 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     try {
-      const response = await authAPI.getMe()
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const response = await authAPI.getMe({ signal: controller.signal })
+      clearTimeout(timeout)
       setUser(response.data.user)
       setIsGuest(false)
       localStorage.removeItem('isGuest')
     } catch (error) {
-      // Cookie expired or invalid - user needs to login again
       clearTokens()
     } finally {
       setLoading(false)
