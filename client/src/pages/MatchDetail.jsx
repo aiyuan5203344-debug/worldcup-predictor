@@ -5,6 +5,7 @@ import { getTeamName, getTeamFlag } from '../utils/teams'
 import api from '../services/api'
 import ChatRoom from '../components/Chat/ChatRoom'
 import OddsDisplay from '../components/Match/OddsDisplay'
+import PredictionShare from '../components/Common/PredictionShare'
 
 const MatchDetail = () => {
   const { id } = useParams()
@@ -24,6 +25,7 @@ const MatchDetail = () => {
   const [awayPlayers, setAwayPlayers] = useState([])
   const [activeTab, setActiveTab] = useState('overview')
   const [activeSquad, setActiveSquad] = useState('home')
+  const [showShareModal, setShowShareModal] = useState(false)
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -631,6 +633,18 @@ const MatchDetail = () => {
                   <p className="text-text-secondary text-sm mt-2">
                     预测时间：{new Date(myPrediction.created_at).toLocaleString('zh-CN')}
                   </p>
+                  {/* Share Button */}
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="mt-4 px-6 py-2 rounded-lg font-medium transition-all"
+                    style={{
+                      background: 'rgba(212, 175, 55, 0.1)',
+                      border: '1px solid #d4af37',
+                      color: '#d4af37'
+                    }}
+                  >
+                    🎨 分享预测海报
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-6">
@@ -739,6 +753,16 @@ const MatchDetail = () => {
         <div className="h-[500px]">
           <ChatRoom matchId={parseInt(id)} user={user} />
         </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <PredictionShare
+          match={match}
+          prediction={myPrediction}
+          user={user}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </div>
   )
