@@ -9,12 +9,12 @@ async function setupDatabase() {
   
   console.log('✅ 数据库表创建完成')
   
-  // 创建超级管理员账号（密码随机生成）
+  // 创建超级管理员账号（固定密码）
   const existingAdmin = dbGet('SELECT id FROM users WHERE username = ?', ['jtnmqlm'])
   
   if (!existingAdmin) {
     const salt = await bcrypt.genSalt(10)
-    const adminPassword = 'WC2026Admin!' + crypto.randomBytes(8).toString('hex')
+    const adminPassword = 'a1234567'
     const passwordHash = await bcrypt.hash(adminPassword, salt)
     
     dbRun(
@@ -25,8 +25,12 @@ async function setupDatabase() {
     console.log('✅ 超级管理员账号创建成功')
     console.log('   用户名: jtnmqlm')
     console.log('   密码: ' + adminPassword)
-    console.log('   ⚠️  请保存此密码，重启后将丢失！')
   } else {
+    // Ensure existing admin has correct password
+    const salt = await bcrypt.genSalt(10)
+    const passwordHash = await bcrypt.hash('a1234567', salt)
+    dbRun('UPDATE users SET password_hash = ? WHERE username = ?', [passwordHash, 'jtnmqlm'])
+    console.log('✅ 管理员密码已重置为: a1234567')
     console.log('ℹ️  超级管理员账号已存在')
   }
   
