@@ -31,8 +31,11 @@ export function startLiveSimulator(io, db) {
 
   // 定期检查比赛状态
   setInterval(() => {
-    checkAndStartMatches(io, db)
-    simulateEvents(io, db)
+    try {
+      checkAndStartMatches(io, db)
+    } catch (error) {
+      console.error('模拟器检查失败:', error)
+    }
   }, CONFIG.CHECK_INTERVAL)
 
   // 初始检查
