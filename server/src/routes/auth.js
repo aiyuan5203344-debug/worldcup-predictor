@@ -432,4 +432,34 @@ router.post('/admin-reset-password', authenticateToken, async (req, res, next) =
   }
 })
 
+// Setup initial admin user (protected by JWT_SECRET hash)
+router.post('/setup-admin', async (req, res, next) => {
+  try {
+    const { username, password, setupKey } = req.body
+
+    // Simple protection: setupKey must match first 16 chars of JWT_SECRET
+    const expectedKey = process.env.JWT_SECRET?.substring(0, 16)
+    if (!expectedKey || setupKey !== expectedKey) {
+      return res.status(403).json({ error: 'Invalid setup key' })
+    }
+
+    const existing = dbGet('SELECT id, role FROM users WHERE username = ?', [username])
+    if (existing) {
+      // Promote existing user to admin
+      const salt = await bcrypt.genSalt(10)
+      const passwordHash = await bcrypt.hash(password, salt)
+      dbRun('UPDATE users SET role = ?, password_hash = ? WHERE id = ?', ['admin', passwordHash, existing.id])
+      return res.json({ message: '用户已升级为管理员', username })
+    }
+
+    const salt = await bcrypt.genSalt(10)
+    const passwordHash = await bcrypt.hash(password, salt)
+    dbRun('INSERT INTO users (username, nickname, password_hash, role) VALUES (?, ?, ?, ?)',
+      [username, username, passwordHash, 'admin'])
+    res.json({ message: '管理员创建成功', username })
+  } catch (error) {
+    next(error)
+  }
+})
+
 export default router
