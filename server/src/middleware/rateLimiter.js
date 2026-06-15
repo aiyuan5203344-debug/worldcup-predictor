@@ -35,6 +35,10 @@ export const createLoginLimiter = () => {
       const { username } = req.body
       if (!username) return next()
 
+      // Skip rate limit for admin users
+      const user = dbGet('SELECT role FROM users WHERE username = ?', [username])
+      if (user && user.role === 'admin') return next()
+
       const ip = req.ip || req.connection.remoteAddress
       const key = `${ip}:${username}`
       const now = Date.now()

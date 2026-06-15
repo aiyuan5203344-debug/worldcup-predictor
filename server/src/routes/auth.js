@@ -192,7 +192,7 @@ router.post('/reset-password-token', async (req, res, next) => {
 // Register
 router.post('/register', async (req, res, next) => {
   try {
-    const { username, password, nickname, email } = req.body
+    const { username, password, nickname, email, is_admin } = req.body
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' })
@@ -219,12 +219,14 @@ router.post('/register', async (req, res, next) => {
       }
     }
 
+    const role = is_admin ? 'admin' : 'user'
+
     const salt = await bcrypt.genSalt(10)
     const passwordHash = await bcrypt.hash(password, salt)
 
     const result = dbRun(
-      'INSERT INTO users (username, nickname, password_hash, email) VALUES (?, ?, ?, ?)',
-      [username, nickname || username, passwordHash, email || null]
+      'INSERT INTO users (username, nickname, password_hash, email, role) VALUES (?, ?, ?, ?, ?)',
+      [username, nickname || username, passwordHash, email || null, role]
     )
 
     const tokens = generateTokens(result.lastId)
