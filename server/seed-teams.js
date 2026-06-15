@@ -19,7 +19,6 @@ const teams = [
   { code: 'MAR', name: 'Morocco', name_cn: '摩洛哥', flag: '🇲🇦', confederation: 'CAF', fifa_ranking: 12, world_cup_titles: 0, strength_rating: 82, market_value: '€3.8亿', coach: '瓦利德·雷格拉吉', captain: '阿什拉夫·哈基米', formation: '4-3-3', style: '防守反击', key_players: '哈基米、齐耶赫、恩内斯里', recent_form: 'WWWWL', injuries: '无重大伤病', group_name: 'C' },
   { code: 'HAI', name: 'Haiti', name_cn: '海地', flag: '🇭🇹', confederation: 'CONCACAF', fifa_ranking: 80, world_cup_titles: 0, strength_rating: 55, market_value: '€0.3亿', coach: '雅巴·卡瓦卡', captain: '杜肯斯·纳宗', formation: '4-4-2', style: '防守反击', key_players: '纳宗、杜塞纳尔', recent_form: 'LDLWL', injuries: '无重大伤病', group_name: 'C' },
   { code: 'SCO', name: 'Scotland', name_cn: '苏格兰', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', confederation: 'UEFA', fifa_ranking: 39, world_cup_titles: 0, strength_rating: 70, market_value: '€1.5亿', coach: '史蒂夫·克拉克', captain: '安德鲁·罗伯逊', formation: '3-4-3', style: '整体压迫', key_players: '罗伯逊、麦克托米奈、亚当斯', recent_form: 'WDLWW', injuries: '无重大伤病', group_name: 'C' },
-  { code: 'NGA', name: 'Nigeria', name_cn: '尼日利亚', flag: '🇳🇬', confederation: 'CAF', fifa_ranking: 36, world_cup_titles: 0, strength_rating: 74, market_value: '€1.8亿', coach: '何塞·佩塞罗', captain: '威廉·特罗斯特-埃孔', formation: '4-3-3', style: '速度冲击', key_players: '奥西梅恩、卢克曼、恰瓦拉', recent_form: 'WWDLW', injuries: '无重大伤病', group_name: 'C' },
 
   // D组
   { code: 'USA', name: 'United States', name_cn: '美国', flag: '🇺🇸', confederation: 'CONCACAF', fifa_ranking: 11, world_cup_titles: 0, strength_rating: 82, market_value: '€4.5亿', coach: '格雷格·贝哈尔特', captain: '泰勒·亚当斯', formation: '4-3-3', style: '快速反击', key_players: '普利西奇、雷纳、麦肯尼', recent_form: 'WWDWL', injuries: '无重大伤病', group_name: 'D' },
@@ -144,12 +143,6 @@ const players = [
   { team_code: 'MAR', name: 'Hakim Ziyech', name_cn: '哈基姆·齐耶赫', position: 'CAM', number: 10, club: 'Galatasaray', age: 31, market_value: '€2000万', goals: 18, assists: 15, caps: 60, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
   { team_code: 'MAR', name: 'Youssef En-Nesyri', name_cn: '尤素夫·恩内斯里', position: 'ST', number: 9, club: 'Sevilla', age: 27, market_value: '€2500万', goals: 22, assists: 5, caps: 65, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
 
-  // 尼日利亚
-  { team_code: 'NGA', name: 'Victor Osimhen', name_cn: '维克托·奥西梅恩', position: 'ST', number: 9, club: 'Galatasaray', age: 25, market_value: '€7000万', goals: 22, assists: 5, caps: 35, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
-  { team_code: 'NGA', name: 'Ademola Lookman', name_cn: '阿德莫拉·卢克曼', position: 'LW', number: 11, club: 'Atalanta', age: 26, market_value: '€4000万', goals: 10, assists: 8, caps: 28, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
-  { team_code: 'NGA', name: 'Samuel Chukwueze', name_cn: '塞缪尔·恰瓦拉', position: 'RW', number: 7, club: 'AC Milan', age: 25, market_value: '€2500万', goals: 6, assists: 5, caps: 30, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
-  { team_code: 'NGA', name: 'William Troost-Ekong', name_cn: '威廉·特罗斯特-埃孔', position: 'CB', number: 5, club: 'PAOK', age: 30, market_value: '€500万', goals: 3, assists: 1, caps: 65, is_captain: 1, is_key_player: 0, injury_status: 'fit' },
-  { team_code: 'NGA', name: 'Maduka Okoye', name_cn: '马杜卡·奥科耶', position: 'GK', number: 1, club: 'Udinese', age: 24, market_value: '€800万', goals: 0, assists: 0, caps: 15, is_captain: 0, is_key_player: 1, injury_status: 'fit' },
 
   // 意大利
   { team_code: 'ITA', name: 'Gianluigi Donnarumma', name_cn: '詹卢伊吉·多纳鲁马', position: 'GK', number: 1, club: 'PSG', age: 25, market_value: '€4000万', goals: 0, assists: 0, caps: 60, is_captain: 1, is_key_player: 1, injury_status: 'fit' },
